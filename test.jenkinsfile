@@ -4,13 +4,23 @@ pipeline {
     stages {
         stage ('cleanup'){
             steps{
-                // TODO
+                cleanWs()
             }
         }
+        
         stage('fetch app code') {
             steps {
                 // Get some code from a GitHub repository
                 git branch: 'main', url: 'https://github.com/PXL-2TIN-DevOps-Resources/calculator-app-finished.git'
+            }
+        }
+        stage('Install dependencies'){
+            steps{
+                script {
+                    env.NODEJS_HOME = "${tool 'testenvnode'}"
+                    env.PATH="${env.NODEJS_HOME}/bin:${env.PATH}"
+                    sh 'npm install'
+                }
             }
         }
     }
