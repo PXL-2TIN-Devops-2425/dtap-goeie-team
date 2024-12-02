@@ -23,5 +23,28 @@ pipeline {
                 }
             }
         }
+        stage('Build artifact'){
+            steps{
+                script {
+                    sh "docker build -t calculator-app:latest ."
+                }
+            }
+        }
+        stage('Push artifact') {
+            steps {
+                script {
+                    def dockerHubUser = "lucadanijspxl"
+                    def dockerImageName = "calculator-app:latest"
+                    def fullImageName = "${dockerHubUser}/calculator-app:latest"
+
+                    sh "echo ${env.DOCKER_PASSWORD} | docker login -u ${env.DOCKER_USERNAME} --password-stdin"
+
+                    sh "docker tag calculator-app:latest ${fullImageName}"
+
+                    sh "docker push ${fullImageName}"
+                }
+            }
+        }
+
     }
 }
