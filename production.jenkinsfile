@@ -1,10 +1,77 @@
 pipeline {
     agent any
+
+    environment {
+        DOCKER_IMAGE = '12301302/dtap:latest'
+        REMOTE_SERVER_IP = '54.87.54.158'
+        REMOTE_USER = 'ubuntu'
+        SSH_KEY = 'ssh-key-id' //credentials('ssh-key-id')
+    }
+
     stages {
-        stage('dtap production') {
+        stage('Deploy Prod') {
             steps {
-                echo "good luck..."
+                script {
+                    sshagent([SSH_KEY]) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER_IP} \
+                            "docker pull ${DOCKER_IMAGE}"
+                        """
+                    }
+                }
             }
+        }
+
+        stage('Start Prod') {
+            steps {
+                script {
+                    sshagent([SSH_KEY]) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER_IP} '
+                                docker ps -q --filter ancestor=${DOCKER_IMAGE} | xargs -r docker stop
+                                docker ps -q --filter ancestor=${DOCKER_IMAGE} | xargs -r docker rm
+                                docker run -d -p 80:80 ${DOCKER_IMAGE}
+                            '
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Test Prod') {
+            steps {
+                script {
+                    sh "sleep 5"
+                    def response = sh(script: """
+                        curl -s -o /dev/null -w "%{http_code}" http://${REMOTE_SERVER_IP}
+                    """, returnStdout: true).trim()
+
+                    if (response != '200') {
+                        error "Application did not return status code 200. Response code: $response"
+                    } else {
+                        echo "Application is up and running, status code: $response"
+                    }
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    sshagent([SSH_KEY]) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_SERVER_IP} \
+                            "docker system prune -f"
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
