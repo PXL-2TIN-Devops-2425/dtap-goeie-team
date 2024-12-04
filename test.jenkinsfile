@@ -31,17 +31,11 @@ pipeline {
             }
         }
         stage('Push artifact') {
-            steps {
-                script {
-                    def dockerHubUser = "lucadanijspxl"
-                    def dockerImageName = "calculator-app:latest"
-                    def fullImageName = "${dockerHubUser}/calculator-app:latest"
-
-                    sh "echo ${env.DOCKER_PASSWORD} | docker login -u ${env.DOCKER_USERNAME} --password-stdin"
-
-                    sh "docker tag calculator-app:latest ${fullImageName}"
-
-                    sh "docker push ${fullImageName}"
+            agent any
+                steps {
+                    withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+                        sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+                        sh 'docker push shanem/spring-petclinic:latest'
                 }
             }
         }
