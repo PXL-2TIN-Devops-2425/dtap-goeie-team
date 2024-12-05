@@ -4,14 +4,61 @@ pipeline {
     stages {
         stage ('cleanup'){
             steps{
-                // TODO
+                cleanWs()
             }
         }
+        
         stage('fetch app code') {
             steps {
                 // Get some code from a GitHub repository
                 git branch: 'main', url: 'https://github.com/PXL-2TIN-DevOps-Resources/calculator-app-finished.git'
             }
         }
+        stage('Install dependencies'){
+            steps{
+                script {
+                    env.NODEJS_HOME = "${tool 'testenvnode'}"
+                    env.PATH="${env.NODEJS_HOME}/bin:${env.PATH}"
+                    sh 'npm install'
+                }
+            }
+        }
+        stage('Build artifact'){
+            steps{
+                script {
+                    sh "docker build -t calculator-app:latest ."
+                }
+            }
+        }
+       stage('Push Docker Image to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'DockerHubRobbe', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    script {
+                        sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker tag calculator-app:latest $DOCKER_USER/calculator-app:latest
+                        docker push $DOCKER_USER/calculator-app:latest
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Application') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'DockerHubRobbe', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    script {
+                        // Debugging output: Controleer of de credentials goed geladen zijn
+                        echo "Deploying using DOCKER_USER: ${DOCKER_USER}"
+
+                        // Docker container verwijderen en opnieuw draaien
+                        sh """
+                        docker rm -f calculator-app || true
+                        docker run -d -p 3000:3000 --name calculator-app $DOCKER_USER/calculator-app:latest
+                        """
+                    }
+                }
+            }   
+        }     
     }
 }
