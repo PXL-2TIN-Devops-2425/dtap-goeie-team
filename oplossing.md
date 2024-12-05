@@ -6,3 +6,8 @@ zoals je hier boven kunt zien hebben we de user moeten toevoegen aan de docker g
 ![alt text](image-1.png)
 zoals je hier boven kunt zien hebben wij credentials moeten toevoegen om de pipeline te laten werken omdat die zonder credentials niet aan de docker hub gaan geraken
 b)
+![image](https://github.com/user-attachments/assets/cbab591d-859d-44de-9c97-15baf91e46ed)
+Ik heb op de server apache moeten downloaden zodat je een curl kunt doen in de server zelf en van buitenaf, ik heb vooraf een fout dat er een conflict was als ik apache had gedownload met de docker dat poort 80 al in gebruik zat maar dan in de code in de jenkinsfile heb ik dit op poort 8081:80 gezet en toen werkte dit wel omdat het dan een curl kan doen en dat er geen conflict is met de poorten.
+
+
+
