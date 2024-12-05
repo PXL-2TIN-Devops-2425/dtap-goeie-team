@@ -41,12 +41,13 @@ pipeline {
                 }
             }
         }
-        stage('Deployment') {
+        stage('Deploy Application') {
             steps {
                 script {
-                    def fullImageName = "lucadanijspxl/calculator-app:latest"
-                    sh "docker rm -f calculator-app || true" 
-                    sh "docker run -d -p 3000:3000 --name calculator-app ${fullImageName}" 
+                    sh """
+                    docker rm -f calculator-app || true
+                    docker run -d -p 3000:3000 --name calculator-app $DOCKER_USER/calculator-app:latest
+                    """
                 }
             }
         }        
