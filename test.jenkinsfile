@@ -30,17 +30,17 @@ pipeline {
                 }
             }
         }
-       stage('Push Docker') {
+       stage('Push Docker Image to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DockerHubRobbe', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh """
                     echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    docker tag robbeprofeta/my-image:latest $DOCKER_USER/my-image:latest
-                    docker push $DOCKER_USER/my-image:latest
+                    docker tag calculator-app:latest $DOCKER_USER/calculator-app:latest
+                    docker push $DOCKER_USER/calculator-app:latest
                     """
                 }
             }
-       }
+        }
         stage('Deployment') {
             steps {
                 script {
