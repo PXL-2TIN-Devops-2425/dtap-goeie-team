@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = '12301302/dtap:latest'
-        REMOTE_SERVER_IP = '54.87.54.158'
+        REMOTE_SERVER_IP = '98.80.15.239'
         REMOTE_USER = 'ubuntu'
         SSH_KEY = 'ssh-key-id' //credentials('ssh-key-id')
     }
