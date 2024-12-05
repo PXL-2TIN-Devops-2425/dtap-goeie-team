@@ -33,14 +33,17 @@ pipeline {
        stage('Push Docker Image to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DockerHubRobbe', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    docker tag calculator-app:latest $DOCKER_USER/calculator-app:latest
-                    docker push $DOCKER_USER/calculator-app:latest
-                    """
+                    script {
+                        sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker tag calculator-app:latest $DOCKER_USER/calculator-app:latest
+                        docker push $DOCKER_USER/calculator-app:latest
+                        """
+                    }
                 }
             }
         }
+
         stage('Deploy Application') {
             steps {
                 script {
